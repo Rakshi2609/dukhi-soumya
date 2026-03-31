@@ -2,36 +2,58 @@ import React, { useState, useEffect } from 'react';
 import './Dashboard.css';
 
 export default function Dashboard() {
-  const [activities, setActivities] = useState([
-    // Fallback static data in case backend isn't up
-    { id: 101, title: 'Pattern Matching', category: 'logic', description: "Tell us how you're feeling to get customized activity picks.", icon: 'extension', colorClass: 'icon-secondary' },
-    { id: 102, title: 'Feeling Journal', category: 'emotional', description: "Track your stars, levels, and upcoming activities all in one place.", icon: 'mood', colorClass: 'icon-tertiary' }
-  ]);
-
+  const [activities, setActivities] = useState([]);
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
   const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
 
   useEffect(() => {
-    fetch(`${API_BASE}/activity/activities`)
-      .then(res => res.json())
-      .then(data => {
-        if (data && data.activities) {
-          // Map backend data to frontend model
-          const mapped = data.activities.map((act, index) => ({
+    const fetchData = async () => {
+      const token = localStorage.getItem('token');
+      try {
+        // Fetch User Profile
+        const userRes = await fetch(`${API_BASE}/auth/me`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (userRes.status === 401) {
+          localStorage.removeItem('token');
+          window.location.href = '/login';
+          return;
+        }
+
+        const userData = await userRes.json();
+        if (userData.status === 'success') setUser(userData.user);
+
+        // Fetch Activities
+        const actRes = await fetch(`${API_BASE}/activity/activities`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const actData = await actRes.json();
+        if (actData && actData.activities) {
+          const mapped = actData.activities.map((act, index) => ({
             ...act,
             icon: act.category === 'mood' ? 'mood' : 'extension',
             colorClass: index % 2 === 0 ? 'icon-secondary' : 'icon-tertiary'
           }));
           setActivities(mapped);
         }
-      })
-      .catch(err => console.error("Could not load backend activities, using fallbacks:", err));
+      } catch (error) {
+        console.error("Dashboard Fetch Error:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
   }, []);
+
+  if (loading) return <div className="loading-state">Loading your journey...</div>;
 
   return (
     <div className="dashboard-container">
       <header className="dashboard-header">
-        <h1>Welcome back, <span className="highlight">Explorer!</span></h1>
-        <p>You have 3 new tasks today. Let's get started!</p>
+        <h1>Welcome back, <span className="highlight">{user?.name || 'Explorer'}!</span></h1>
+        <p>You have {activities.length} new tasks today. Let's get started!</p>
       </header>
       
       <div className="dashboard-grid">
@@ -40,15 +62,15 @@ export default function Dashboard() {
           <h2>Your Weekly Progress</h2>
           <div className="stats-container">
              <div className="stat">
-                <span className="stat-number primary">12</span>
+                <span className="stat-number primary">{user?.progress?.activities_completed || 0}</span>
                 <span className="stat-label">Activities</span>
              </div>
              <div className="stat">
-                <span className="stat-number secondary">90%</span>
+                <span className="stat-number secondary">{user?.progress?.focus_score || 0}%</span>
                 <span className="stat-label">Focus Score</span>
              </div>
              <div className="stat">
-                <span className="stat-number tertiary">Lvl 5</span>
+                <span className="stat-number tertiary">{user?.progress?.rank || 'Lvl 1'}</span>
                 <span className="stat-label">Rank</span>
              </div>
           </div>

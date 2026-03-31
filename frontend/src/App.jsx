@@ -10,7 +10,14 @@ import Register from './pages/Register';
 import Login from './pages/Login';
 import Navbar from './components/Navbar';
 import { Toaster } from 'react-hot-toast';
+import { Navigate } from 'react-router-dom';
 import './App.css';
+
+const ProtectedRoute = ({ children }) => {
+  const token = localStorage.getItem('token');
+  if (!token) return <Navigate to="/login" replace />;
+  return children;
+};
 
 function App() {
   return (
@@ -19,11 +26,11 @@ function App() {
       <Navbar />
       <Routes>
         <Route path="/" element={<LandingPage />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/mood" element={<MoodDetection />} />
-        <Route path="/communicate" element={<Communication />} />
-        <Route path="/parent" element={<ParentDashboard />} />
-        <Route path="/activities" element={<Activities />} />
+        <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+        <Route path="/mood" element={<ProtectedRoute><MoodDetection /></ProtectedRoute>} />
+        <Route path="/communicate" element={<ProtectedRoute><Communication /></ProtectedRoute>} />
+        <Route path="/parent" element={<ProtectedRoute><ParentDashboard /></ProtectedRoute>} />
+        <Route path="/activities" element={<ProtectedRoute><Activities /></ProtectedRoute>} />
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
       </Routes>
