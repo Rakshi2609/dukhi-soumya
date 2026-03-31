@@ -8,8 +8,10 @@ activity_bp = Blueprint('activity', __name__)
 def get_activities():
     # Return placeholder activities or combine with DB records
     activities = [
-        {"id": 1, "title": "Mood Check", "description": "Tell us how you're feeling to get customized activity picks.", "category": "mood"},
-        {"id": 2, "title": "Dashboard", "description": "Track your stars, levels, and upcoming activities all in one place.", "category": "dashboard"}
+        {"id": 1, "title": "Bubble Pop", "description": "Pop colorful bubbles to improve focus and finger dexterity.", "category": "logic"},
+        {"id": 2, "title": "Sound Match", "description": "Match rhythmic patterns to soothe the senses.", "category": "auditory"},
+        {"id": 3, "title": "Color Sorting", "description": "Organize blocks by hue in a calm, timed session.", "category": "visual"},
+        {"id": 4, "title": "Feeling Journal", "description": "Record your daily emotions with tactile emoji interactions.", "category": "emotional"}
     ]
     db_activities = get_records('activities')
     return jsonify({"activities": activities, "saved_results": db_activities})

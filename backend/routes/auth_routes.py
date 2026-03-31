@@ -12,6 +12,11 @@ def register():
         if user_exists:
             return jsonify({"status": "error", "message": "User already exists"}), 400
         
+        data['progress'] = {
+            "activities_completed": 0,
+            "focus_score": 0,
+            "rank": "Lvl 1 (Newcomer)"
+        }
         db.users.insert_one(data)
         return jsonify({"status": "success", "message": "User registered successfully"}), 201
     else:
@@ -48,18 +53,26 @@ def get_me():
     if not token:
         return jsonify({"status": "error", "message": "No token provided"}), 401
     
-    # In a real app, decode JWT and find user in DB
-    # For now, we'll return a mock "Explorer" user
-    return jsonify({
-        "status": "success",
-        "user": {
-            "name": "Explorer",
-            "email": "explorer@neurolearn.com",
-            "role": "student",
-            "progress": {
-                "activities_completed": 12,
-                "focus_score": 90,
-                "rank": "Lvl 5"
-            }
-        }
-    })
+    # In a real app, decode JWT. Here we simulate by looking for a 'User-Email' or similar
+    # For this demo, let's assume the client sends the email in a header or we find the last user
+    db = get_db()
+    if db is not None:
+        # For demo purposes, we'll fetch the most recently active/registered user if no email provided
+        # In production, this MUST use the email from the decoded JWT token
+        user = db.users.find_one({}, sort=[('_id', -1)]) 
+        if user:
+            return jsonify({
+                "status": "success",
+                "user": {
+                    "name": user.get('name'),
+                    "email": user.get('email'),
+                    "role": user.get('role', 'student'),
+                    "progress": user.get('progress', {
+                        "activities_completed": 0,
+                        "focus_score": 0,
+                        "rank": "Lvl 1"
+                    })
+                }
+            })
+    
+    return jsonify({"status": "error", "message": "User not found"}), 404
