@@ -15,6 +15,8 @@ const Navbar = () => {
         <NavLink to="/activities" className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>Activities</NavLink>
         <NavLink to="/communicate" className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>Communicate</NavLink>
         <NavLink to="/parent" className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>Parent</NavLink>
+        <NavLink to="/login" className={({ isActive }) => (isActive ? 'nav-link active login-link' : 'nav-link login-link')}>Login</NavLink>
+        <NavLink to="/register" className={({ isActive }) => (isActive ? 'nav-link active register-link' : 'nav-link register-link')}>Register</NavLink>
       </div>
       <div className="navbar-profile">
         <span className="material-symbols-outlined">account_circle</span>
