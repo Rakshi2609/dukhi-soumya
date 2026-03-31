@@ -22,6 +22,8 @@ const Login = () => {
             const data = await response.json();
             if (data.status === 'success') {
                 localStorage.setItem('token', data.token);
+                localStorage.setItem('username', data.user?.name || formData.email);
+                localStorage.setItem('email', data.user?.email || formData.email);
                 toast.success(`Welcome back, ${data.user?.name || 'Explorer'}!`);
                 navigate('/dashboard');
             } else {

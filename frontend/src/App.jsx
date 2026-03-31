@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import LandingPage from './pages/LandingPage';
 import Dashboard from './pages/Dashboard';
 import MoodDetection from './pages/MoodDetection';
@@ -8,9 +8,12 @@ import ParentDashboard from './pages/ParentDashboard';
 import Activities from './pages/Activities';
 import Register from './pages/Register';
 import Login from './pages/Login';
+import BubblePop from './pages/games/BubblePop';
+import SoundMatch from './pages/games/SoundMatch';
+import ColorSorting from './pages/games/ColorSorting';
+import FeelingJournal from './pages/games/FeelingJournal';
 import Navbar from './components/Navbar';
 import { Toaster } from 'react-hot-toast';
-import { Navigate } from 'react-router-dom';
 import './App.css';
 
 const ProtectedRoute = ({ children }) => {
@@ -31,6 +34,10 @@ function App() {
         <Route path="/communicate" element={<ProtectedRoute><Communication /></ProtectedRoute>} />
         <Route path="/parent" element={<ProtectedRoute><ParentDashboard /></ProtectedRoute>} />
         <Route path="/activities" element={<ProtectedRoute><Activities /></ProtectedRoute>} />
+        <Route path="/games/bubble-pop" element={<ProtectedRoute><BubblePop /></ProtectedRoute>} />
+        <Route path="/games/sound-match" element={<ProtectedRoute><SoundMatch /></ProtectedRoute>} />
+        <Route path="/games/color-sorting" element={<ProtectedRoute><ColorSorting /></ProtectedRoute>} />
+        <Route path="/games/feeling-journal" element={<ProtectedRoute><FeelingJournal /></ProtectedRoute>} />
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
       </Routes>

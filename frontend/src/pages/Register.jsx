@@ -21,6 +21,9 @@ const Register = () => {
             });
             const data = await response.json();
             if (data.status === 'success') {
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('username', data.user?.name || formData.name || formData.email);
+                localStorage.setItem('email', data.user?.email || formData.email);
                 toast.success("Account created successfully!");
                 navigate('/dashboard');
             } else {
