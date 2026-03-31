@@ -1,0 +1,15 @@
+# Root .gitignore
+node_modules/
+venv/
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
+dist/
+build/
+.env
+data.json
+package-lock.json
+frontend/node_modules/
+backend/venv/
+backend/__pycache__/
