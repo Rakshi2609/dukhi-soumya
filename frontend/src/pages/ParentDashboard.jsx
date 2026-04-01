@@ -1,32 +1,91 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import './ParentDashboard.css';
 
 const ParentDashboard = () => {
+  const [gameScores, setGameScores] = useState([]);
+  const [moodHistory, setMoodHistory] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const username = localStorage.getItem('username') || "Parent";
+
+  const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const token = localStorage.getItem('token');
+
+      try {
+        // Fetch game scores
+        const scoresRes = await fetch(`${API_BASE}/game/scores`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const scoresData = await scoresRes.json();
+        if (scoresData.scores) setGameScores(scoresData.scores);
+
+        // Fetch mood history
+        const moodRes = await fetch(`${API_BASE}/mood/history`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const moodData = await moodRes.json();
+        if (moodData.history) setMoodHistory(moodData.history);
+
+      } catch (err) {
+        console.error("Error fetching parent dashboard:", err);
+      }
+
+      setLoading(false);
+    };
+
+    fetchData();
+  }, []);
+
+  // 🔹 Activities count
+  const activitiesDone = gameScores.length;
+
+  // 🔹 Mood calculation
+  const moodCounts = {};
+  moodHistory.forEach(m => {
+    const mood = m.primary_emotion || m.emotion || "Neutral";
+    moodCounts[mood] = (moodCounts[mood] || 0) + 1;
+  });
+
+  const dominantMood =
+    Object.keys(moodCounts).sort((a, b) => moodCounts[b] - moodCounts[a])[0] || "Neutral";
+
+  // 🔹 Fake focus score (based on activity count)
+  const focusScore = activitiesDone > 0 ? (Math.min(activitiesDone * 10, 100) / 10).toFixed(1) : "0";
+
   const kpis = [
-    { title: "Average Mood", value: "Stable", change: "↑ 12% improvement", icon: "mood", color: "#BAE6FD" },
-    { title: "Activities Done", value: "24", change: "Goal: 30/week", icon: "task_alt", color: "#E0E7FF" },
-    { title: "Focus Score", value: "8.4", change: "Consistent peak", icon: "psychology", color: "#F0F9FF" },
-    { title: "Social Interacts", value: "12", change: "New phrases used", icon: "chat_bubble", color: "#DDD6FE" },
+    { title: "Average Mood", value: dominantMood, change: "Based on recent logs", icon: "mood", color: "#BAE6FD" },
+    { title: "Activities Done", value: activitiesDone, change: "This week", icon: "task_alt", color: "#E0E7FF" },
+    { title: "Focus Score", value: focusScore, change: "Derived from activity", icon: "psychology", color: "#F0F9FF" },
+    { title: "Mood Entries", value: moodHistory.length, change: "Tracked emotions", icon: "chat_bubble", color: "#DDD6FE" },
   ];
 
-  const alerts = [
-    { id: 1, type: "warning", time: "2h ago", title: "Recent Alert", message: "Unusual frustration during Logic Puzzles.", status: "Active" },
-    { id: 2, type: "history", time: "Yesterday", title: "Resolved", message: "Sleep disruption reported via Mood Tracker.", status: "Resolved" },
-  ];
+  // 🔹 Last 7 mood values for chart
+  const last7 = moodHistory.slice(-7);
+  const moodValues = last7.map((_, i) => 50 + i * 5); // simple visual variation
+
+  if (loading) {
+    return <div className="parent-page-container">Loading dashboard...</div>;
+  }
 
   return (
     <div className="parent-page-container">
+      
+      {/* Header */}
       <header className="parent-header">
         <div className="header-top">
-          <h1>Welcome back, <span className="italic-accent">Sarah</span></h1>
+          <h1>Welcome back, <span className="italic-accent">{username}</span></h1>
           <div className="date-picker-placeholder">
             <span className="material-symbols-outlined">calendar_today</span>
             <span>Last 7 Days</span>
           </div>
         </div>
-        <p className="subtitle">Here's how Leo is progressing this week.</p>
+        <p className="subtitle">Here’s how your child is progressing this week.</p>
       </header>
 
+      {/* KPIs */}
       <div className="kpi-grid">
         {kpis.map((kpi, index) => (
           <div className="kpi-card shadow-sm" key={index} style={{ borderLeft: `4px solid ${kpi.color}` }}>
@@ -42,94 +101,40 @@ const ParentDashboard = () => {
         ))}
       </div>
 
-      <div className="dashboard-main-grid">
-        <div className="chart-section lg:col-span-2">
-          <div className="chart-card shadow-soft">
-            <div className="chart-header">
-              <h2>Weekly Mood Trend</h2>
-              <span className="handwritten">Visualizing calmness</span>
-            </div>
-            <div className="chart-visual">
-               {/* Simulated bar chart */}
-               <div className="bar-container">
-                  <div className="bar" style={{ height: '75%' }}></div>
-                  <div className="bar" style={{ height: '50%' }}></div>
-                  <div className="bar" style={{ height: '85%' }}></div>
-                  <div className="bar" style={{ height: '65%' }}></div>
-                  <div className="bar" style={{ height: '75%' }}></div>
-                  <div className="bar" style={{ height: '80%' }}></div>
-                  <div className="bar" style={{ height: '100%' }}></div>
-               </div>
-               <div className="chart-footer">
-                  <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
-               </div>
-            </div>
-          </div>
-
-          <div className="secondary-stats-row">
-            <div className="focus-areas-card shadow-sm">
-              <h3>Focus Areas</h3>
-              <div className="area-item">
-                <div className="item-txt"><span>Language</span><span>85%</span></div>
-                <div className="progress-bg"><div className="progress-fill primary" style={{ width: '85%' }}></div></div>
-              </div>
-              <div className="area-item">
-                <div className="item-txt"><span>Motor Skills</span><span>62%</span></div>
-                <div className="progress-bg"><div className="progress-fill secondary" style={{ width: '62%' }}></div></div>
-              </div>
-              <div className="area-item">
-                <div className="item-txt"><span>Logic</span><span>94%</span></div>
-                <div className="progress-bg"><div className="progress-fill tertiary" style={{ width: '94%' }}></div></div>
-              </div>
-            </div>
-
-            <div className="milestone-card shadow-sm">
-              <span className="material-symbols-outlined milestone-icon">stars</span>
-              <p className="milestone-title">Weekly Milestone</p>
-              <p className="milestone-desc">Leo mastered the "Complex Shapes" module 2 days earlier than projected!</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="sidebar-section">
-          <section className="alerts-card shadow-sm">
-             <div className="section-title">
-                <span className="material-symbols-outlined text-error">warning</span>
-                <h2>Mood Alerts</h2>
-             </div>
-             <div className="alerts-list">
-                {alerts.map(alert => (
-                  <div className={`alert-item ${alert.type}`} key={alert.id}>
-                    <span className="material-symbols-outlined icon-small">
-                      {alert.type === 'warning' ? 'event_busy' : 'history'}
-                    </span>
-                    <div className="alert-content">
-                       <span className="alert-meta">{alert.title} • {alert.time}</span>
-                       <p className="alert-msg">{alert.message}</p>
-                    </div>
-                  </div>
-                ))}
-             </div>
-          </section>
-
-          <section className="recommendations-section">
-             <div className="section-title">
-                <span className="material-symbols-outlined text-primary">lightbulb</span>
-                <h2>Caregiver Recommendations</h2>
-             </div>
-             <div className="rec-card primary shadow-sm">
-                <h4>Evening Wind-down Tip</h4>
-                <p>Try introducing the "Deep Sea Breath" activity 15 minutes earlier today to combat recorded afternoon fatigue.</p>
-                <span className="material-symbols-outlined arrow">chevron_right</span>
-             </div>
-             <div className="rec-card tertiary shadow-sm">
-                <h4>Activity Adjustment</h4>
-                <p>Leo is excelling at visual tasks. Introduce more 'matching' games to build on this confidence boost.</p>
-                <span className="material-symbols-outlined arrow">chevron_right</span>
-             </div>
-          </section>
+      {/* Chart */}
+      <div className="chart-card shadow-soft">
+        <h2>Weekly Mood Trend</h2>
+        <div className="bar-container">
+          {moodValues.map((val, i) => (
+            <div key={i} className="bar" style={{ height: `${val}%` }}></div>
+          ))}
         </div>
       </div>
+
+      {/* Alerts */}
+      <div className="alerts-card shadow-sm">
+        <h2>Mood Alerts</h2>
+
+        {dominantMood === "Sad" || dominantMood === "Angry" ? (
+          <div className="alert-item warning">
+            <p>Child showing signs of stress. Consider calming activities.</p>
+          </div>
+        ) : (
+          <div className="alert-item">
+            <p>No concerning mood patterns detected 👍</p>
+          </div>
+        )}
+      </div>
+
+      {/* Recommendations */}
+      <div className="rec-card primary shadow-sm">
+        <h4>Recommendation</h4>
+        <p>
+          Encourage more {dominantMood === "Happy" ? "interactive" : "calming"} activities
+          based on recent mood trends.
+        </p>
+      </div>
+
     </div>
   );
 };
